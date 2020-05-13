@@ -23,10 +23,47 @@ public class MainActivity extends AppCompatActivity {
         - Feel free to modify the function to suit your program.
     */
 
+    private Button ButtonLeft;
+    private Button ButtonMiddle;
+    private Button ButtonRight;
+    private Button[] ButtonList = new Button[3];
+    private int Score = 0;
+    private TextView ScoreView;
+    private final String TAG = "Whack-A-Mole 1.0";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ButtonLeft = (Button) findViewById(R.id.ButtonLeft);
+        ButtonMiddle = (Button) findViewById(R.id.ButtonMiddle);
+        ButtonRight  = (Button) findViewById(R.id.ButtonRight);
+        ButtonList[0] = ButtonLeft;
+        ButtonList[1] = ButtonMiddle;
+        ButtonList[2] = ButtonRight;
+        ScoreView = (TextView) findViewById(R.id.ScoreView);
+
+        ButtonLeft.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v)
+            {
+                doCheck(ButtonLeft);
+            }
+        });
+
+        ButtonMiddle.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v)
+            {
+                doCheck(ButtonMiddle);
+            }
+        });
+
+        ButtonRight.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v)
+            {
+                doCheck(ButtonRight);
+            }
+        });
 
         Log.v(TAG, "Finished Pre-Initialisation!");
 
@@ -55,6 +92,27 @@ public class MainActivity extends AppCompatActivity {
         /* Checks for hit or miss and if user qualify for advanced page.
             Triggers nextLevelQuery().
          */
+        String buttonClicked;
+        if (checkButton == ButtonLeft){
+            buttonClicked = "Left";
+        }
+        else if (checkButton == ButtonRight){
+            buttonClicked = "Right";
+        }
+        else{
+            buttonClicked = "Middle";
+        }
+        if (checkButton.getText() == "*"){
+            hit(buttonClicked);
+            if (Score % 10 == 0){
+                nextLevelQuery();
+            }
+        }
+        else{
+            miss(buttonClicked);
+        }
+        ScoreView.setText(Integer.toString(Score));
+        setNewMole();
     }
 
     private void nextLevelQuery(){
@@ -64,14 +122,59 @@ public class MainActivity extends AppCompatActivity {
         Log.v(TAG, "User decline!");
         Log.v(TAG, "Advance option given to user!");
         belongs here*/
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Warning! Moles calling for backup!");
+        builder.setMessage("Would you like to advance to advanced mode?");
+        builder.setCancelable(false);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.v(TAG, "User accepts!");
+                nextLevel();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.v(TAG, "User decline!");
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+        Log.v(TAG, "Advance option given to user!");
     }
 
     private void nextLevel(){
         /* Launch advanced page */
+        Intent advancedStage = new Intent(MainActivity.this, Main2Activity.class);
+        advancedStage.putExtra("score", Score);
+        startActivity(advancedStage);
     }
 
-    private void setNewMole() {
+    private void setNewMole()
+    {
+        for (Button button : ButtonList){
+            if (button.getText() == "*"){
+                button.setText("O");
+            }
+        }
+
         Random ran = new Random();
         int randomLocation = ran.nextInt(3);
+        ButtonList[randomLocation].setText("*");
+    }
+
+    private void hit(String buttonClicked)
+    {
+        Score += 1;
+        Log.v(TAG, buttonClicked + " Button Clicked!\nHit, score added!");
+    }
+
+    private void miss(String buttonClicked)
+    {
+        if (Score > 0){
+            Score -= 1;
+        }
+        Log.v(TAG, buttonClicked + " Button Clicked!\nMissed, point deducted!");
     }
 }
